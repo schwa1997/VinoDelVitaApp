@@ -173,7 +173,7 @@ const ReportMap: React.FC = () => {
                 >
                     <Form
                         {...formItemLayout}
-                        name="vineyard infomation"
+                        name={currentVineyard?.name}
                         style={{
                             maxWidth: 600,
                         }}
