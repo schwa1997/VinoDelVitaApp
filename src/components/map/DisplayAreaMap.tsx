@@ -1,11 +1,10 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import L from 'leaflet';
 
-interface MarksAreaProps {
-    area: any;
-}
+import { AreaType } from '@/type';
 
-const AreaMap: React.FC<MarksAreaProps> = ({ area }) => {
+const AreaMap = (area: AreaType) => {
+    console.log('area information', area.geometry);
     useEffect(() => {
         let map: L.Map | null = null;
         let markers: L.Marker[] = [];
@@ -15,7 +14,7 @@ const AreaMap: React.FC<MarksAreaProps> = ({ area }) => {
 
         if (area && area.geometry) {
             if (!map) {
-                console.log('areas', area.geometry);
+                console.log('area.geometry', area.geometry);
                 map = L.map('map').setView(
                     [area.geometry.coordinates[0][0][0], area.geometry.coordinates[0][0][1]], // Switch latitude and longitude
                     19,

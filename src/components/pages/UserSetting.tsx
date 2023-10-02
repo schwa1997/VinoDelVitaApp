@@ -9,9 +9,11 @@ import { EditFilled, MailOutlined, PhoneFilled, UserOutlined } from '@ant-design
 
 import { confirmPSW, getCompanyByID, updateCompany, updateCompanyPSW } from '@/server/api/apis';
 
+import { CompanyType } from '@/type';
+
 import ResultContainer from './components/Result';
 
-const UpdateForm = ({ user }) => {
+const UpdateForm = (user: CompanyType) => {
     const navigate = useNavigate();
     const [submitSuccess, setSubmitSuccess] = useState(false);
     // Destructure the user prop
@@ -119,9 +121,9 @@ const UpdateForm = ({ user }) => {
         </>
     );
 };
-const ChangePSWForm = ({ user }) => {
+const ChangePSWForm = (user: CompanyType) => {
     const [submitSuccess, setSubmitSuccess] = useState(false);
-    const [submissionError, setSubmissionError] = useState(null);
+    const [submissionError, setSubmissionError] = useState(false);
     const [visible, setVisible] = useState(true);
     const [confirmOK, setConfirmOK] = useState(false); // State to track confirmation success
 
@@ -150,7 +152,8 @@ const ChangePSWForm = ({ user }) => {
                     }
                 }
             } catch (error) {
-                setSubmissionError(error.message);
+                console.log('error');
+                setSubmissionError(true);
             } finally {
                 setSubmitting(false);
             }
@@ -221,8 +224,7 @@ const ChangePSWForm = ({ user }) => {
 
 const CompanyInfo = () => {
     const id = localStorage.getItem('id');
-    console.log(id);
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState<CompanyType>();
     const [edit, setEdit] = useState(false);
     const [changePWD, setChangePWD] = useState(false);
     const handleEdit = () => {
@@ -232,15 +234,16 @@ const CompanyInfo = () => {
         setChangePWD(!changePWD);
     };
     useEffect(() => {
-        console.log(id);
-        getCompanyByID(id)
-            .then((res) => {
-                setUser(res);
-                console.log('res', res);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
+        if (id) {
+            getCompanyByID(id)
+                .then((res) => {
+                    setUser(res);
+                    console.log('res', res);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        }
     }, []);
 
     return (
@@ -251,15 +254,15 @@ const CompanyInfo = () => {
                     className="tw-bg-gradient-to-b tw-from-violet-300 tw-via-purple-300 tw-to-violet-50 tw-w-full md:tw-w-1/4 tw-fixed tw-pt-44 tw-h-screen tw-shadow-md tw-p-4"
                 >
                     <p className="tw-flex tw-border-solid tw-border-white tw-p-2 tw-items-center tw-text-lg tw-font-medium tw-mb-2 tw-w-full tw-text-ellipsis">
-                        <UserOutlined className="tw-mr-2" />
+                        <UserOutlined className="tw-mr-2" rev={undefined} />
                         {user.companyName}
                     </p>
                     <p className="tw-flex tw-border-solid tw-border-white tw-p-2 tw-items-center tw-text-lg tw-font-medium tw-mb-2">
-                        <MailOutlined className="tw-mr-2" />
+                        <MailOutlined className="tw-mr-2" rev={undefined} />
                         {user.email}
                     </p>
                     <p className="tw-flex tw-border-solid tw-border-white tw-p-2 tw-items-center tw-text-lg tw-font-medium">
-                        <PhoneFilled className="tw-mr-2" />
+                        <PhoneFilled className="tw-mr-2" rev={undefined} />
                         {user.phone}
                     </p>
                     <p>
@@ -273,8 +276,24 @@ const CompanyInfo = () => {
                     </Button>
                 </div>
             )}
-            {user && edit && <UpdateForm user={user} />}
-            {user && changePWD && <ChangePSWForm user={user} />}
+            {user && edit && (
+                <UpdateForm
+                    id={user.id}
+                    companyName={user.companyName}
+                    password={user.password}
+                    email={user.email}
+                    phone={user.phone}
+                />
+            )}
+            {user && changePWD && (
+                <ChangePSWForm
+                    id={user.id}
+                    companyName={user.companyName}
+                    password={user.password}
+                    email={user.email}
+                    phone={user.phone}
+                />
+            )}
         </div>
     );
 };

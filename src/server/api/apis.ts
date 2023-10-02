@@ -9,14 +9,16 @@ export async function getAllReportsAsAdmin(orderBy: string, vineyard: string, pa
         Authorization: `Bearer ${jwtToken}`,
     };
     if (vineyard) {
-        console.log('use vineyard');
+        console.log('use vineyard', page);
         const response = await commonRequest.get(
             `/reports?orderBy=${orderBy}&vineyard=${vineyard}&page=${page}`,
             { headers },
         );
         return response.data;
     }
-    const response = await commonRequest.get('/reports?orderBy=createdAt', { headers });
+    const response = await commonRequest.get(`/reports?orderBy=${orderBy}&page=${page}`, {
+        headers,
+    });
     return response.data;
 }
 
