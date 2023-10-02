@@ -8,6 +8,8 @@ import { DeleteFilled, EditFilled, SmileFilled } from '@ant-design/icons';
 
 import { deleteReortByID, updateReport } from '@/server/api/apis';
 
+import { AreaType, VineyardType } from '@/type';
+
 import ResultContainer from './Result';
 
 interface ReportCardProps {
@@ -15,8 +17,8 @@ interface ReportCardProps {
     title: string;
     description: string;
     disease: string;
-    area: Array<any>;
-    vineyard: Array<any>;
+    area: AreaType;
+    vineyard: VineyardType;
 }
 export const ReportCard: React.FC<ReportCardProps> = ({
     id,

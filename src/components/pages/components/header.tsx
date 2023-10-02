@@ -22,7 +22,7 @@ import { ThemeConfig, ThemeContext } from './Theme';
 const items: MenuProps['items'] = [
     {
         label: (
-            <a target="_self" rel="noopener noreferrer" href="/newReport">
+            <a target="_self" rel="noopener noreferrer" href="/add/newReport">
                 <PlusSquareOutlined rev={undefined} /> Add a report on map
             </a>
         ),

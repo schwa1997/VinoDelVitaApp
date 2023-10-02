@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Button } from 'antd';
 
-import ReportMap from '../map/CreateReportMap';
+import ReportMap from '../../components/map/CreateReportMap';
 
-import NotFoundPage from './components/404';
+import NotFoundPage from '../../components/pages/components/404';
 
 const NewReport = () => {
     const role = localStorage.getItem('role');

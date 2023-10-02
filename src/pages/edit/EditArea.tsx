@@ -1,6 +1,6 @@
-import EditAreaMap from '../map/EditAreaMap';
+import EditAreaMap from '../../components/map/EditAreaMap';
 
-import NotFoundPage from './components/404';
+import NotFoundPage from '../../components/pages/components/404';
 
 const EditArea = () => {
     const role = localStorage.getItem('role');

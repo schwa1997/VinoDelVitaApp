@@ -1,6 +1,6 @@
-import EditVineyardMap from '../map/EditVineyardMap';
+import EditVineyardMap from '../../components/map/EditVineyardMap';
 
-import NotFoundPage from './components/404';
+import NotFoundPage from '../../components/pages/components/404';
 
 const EditVineyard = () => {
     const role = localStorage.getItem('role');

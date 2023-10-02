@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import ResultContainer from './components/Result';
+import ResultContainer from '../../components/pages/components/Result';
 
 const LogOut = () => {
     const [submitSuccess, setSubmitSuccess] = useState(false);

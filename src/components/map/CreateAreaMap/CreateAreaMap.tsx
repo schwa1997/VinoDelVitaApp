@@ -3,11 +3,9 @@ import React, { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { Button, Form, Input } from 'antd';
 
-import { useFormik } from 'formik';
+import { GeometryType } from '@/type';
 
-import { createArea } from '@/server/api/apis';
-
-import ResultContainer from '../pages/components/Result';
+import { NewAreaForm } from './component/NewAreaForm';
 
 const formItemLayout = {
     labelCol: {
@@ -27,123 +25,53 @@ const formItemLayout = {
         },
     },
 };
-const NewAreaForm = ({ geometry }) => {
-    const [submitSuccess, setSubmitSuccess] = useState(false);
-    const [submissionError, setSubmissionError] = useState(null); // State to handle submission errors
-    const [visible, setVisible] = useState(true);
-    const handleClose = () => {
-        setVisible(false);
-    };
-    const formik = useFormik({
-        initialValues: {
-            name: '',
-            code: '',
-            geometry,
-        },
-        onSubmit: async (values) => {
-            // Add 'async' here
-            const { name, code } = values;
-            const geoJsonPolygon = {
-                type: 'Polygon',
-                coordinates: [geometry],
-            };
-            const data = {
-                name,
-                code,
-                geometry: geoJsonPolygon,
-            };
-            if (!values.name || !values.code) {
-                console.error('Missing required fields in data:', values);
-                return;
-            }
-
-            try {
-                const response = await createArea(name, code, data.geometry);
-                console.log('Response:', response);
-                setSubmitSuccess(true);
-            } catch (error) {
-                setSubmissionError(error.message);
-                console.error('Failed to submit area:', error);
-            }
-        },
-    });
-
-    return (
-        <>
-            {!submitSuccess && visible && (
-                <>
-                    <form
-                        id="Container"
-                        className="tw-z-50 tw-fixed md:tw-right-8 tw-top-1/4 tw-right-1/4 tw-transform  tw-bg-gradient-to-b tw-from-violet-300 tw-via-purple-300 tw-to-violet-50 tw-rounded-lg tw-shadow-md tw-p-6 sm:tw-p-8"
-                        onSubmit={formik.handleSubmit}
-                    >
-                        {submissionError && (
-                            <p className="tw-text-red-600 tw-mb-4">{submissionError}</p>
-                        )}
-                        <button
-                            className="tw-absolute tw-top-2 tw-right-2 tw-text-black tw-rounded-full tw-outline-none tw-shadow-md"
-                            onClick={handleClose}
-                        >
-                            X
-                        </button>
-
-                        <div className="tw-mb-4">
-                            <label htmlFor="name" className="tw-block tw-font-bold">
-                                Name
-                            </label>
-                            <input
-                                id="name"
-                                name="name"
-                                type="text"
-                                onChange={formik.handleChange}
-                                value={formik.values.name}
-                                className="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded"
-                            />
-                        </div>
-                        <div className="tw-mb-4">
-                            <label htmlFor="email" className="tw-block tw-font-bold">
-                                Code
-                            </label>
-                            <input
-                                id="code"
-                                name="code"
-                                type="code"
-                                onChange={formik.handleChange}
-                                value={formik.values.code}
-                                className="tw-w-full tw-px-3 tw-py-2 tw-border tw-rounded"
-                            />
-                        </div>
-                        <button
-                            id="button"
-                            type="submit"
-                            className="tw-bg-customPurple tw-hover:bg-blue-700 tw-text-white tw-font-bold tw-py-2 tw-px-4 tw-rounded tw-w-full sm:tw-w-auto"
-                        >
-                            Submit
-                        </button>
-                    </form>
-                </>
-            )}
-            {submitSuccess && <ResultContainer />}
-        </>
-    );
-};
 
 const AreaMap: React.FC = () => {
-    const [geometry, setGeometry] = useState<any>([]);
+    const [geometry, setGeometry] = useState<GeometryType | undefined>();
     const [isFormVisible, setIsFormVisible] = useState(true);
     const toggleFormVisibility = () => {
         setIsFormVisible((prevValue) => !prevValue);
     };
-    const handleDeleteCoordinate = (index) => {
-        // Create a new array with the selected coordinate pair removed
-        const newGeometry = geometry.filter((_, i) => i !== index);
-        // Update the state with the new array
-        setGeometry(newGeometry);
+    const handleDeleteCoordinate = (index: number) => {
+        if (geometry) {
+            // Create a new array with the selected coordinate pair removed
+            const updatedCoordinates = [...geometry.coordinates[0]]; // Create a shallow copy
+            updatedCoordinates.splice(index, 1); // Remove the specified coordinate pair
+
+            // Update the state with the new array
+            const updatedGeometry = { ...geometry, coordinates: [updatedCoordinates] };
+            setGeometry(updatedGeometry);
+        }
     };
+
+    const handleCoordinateChange = (index: number, subIndex: number, value: number) => {
+        if (geometry) {
+            // Deep copy the geometry object to avoid mutating the original state
+            const updatedGeometry = JSON.parse(JSON.stringify(geometry));
+            // Check if the coordinates array is defined and has the expected structure
+            if (
+                Array.isArray(updatedGeometry.coordinates) &&
+                Array.isArray(updatedGeometry.coordinates[0]) &&
+                updatedGeometry.coordinates[0][index] !== undefined &&
+                updatedGeometry.coordinates[0][index][subIndex] !== undefined
+            ) {
+                if (subIndex === 0) {
+                    updatedGeometry.coordinates[0][index][0] = value;
+                } else if (subIndex === 1) {
+                    updatedGeometry.coordinates[0][index][1] = value;
+                }
+
+                // Update the state with the modified geometry object
+                setGeometry(updatedGeometry);
+            } else {
+                console.error('Invalid coordinates structure:', updatedGeometry.coordinates);
+            }
+        }
+    };
+
     useEffect(() => {
         let map: L.Map | null = null;
         let areaPolygon: L.Polygon | null = null;
-
         if (!map) {
             map = L.map('map');
             if (navigator.geolocation) {
@@ -151,14 +79,15 @@ const AreaMap: React.FC = () => {
                     (position) => {
                         const { latitude, longitude } = position.coords;
                         map?.setView([latitude, longitude], 19);
-
-                        areaPolygon = L.polygon(geometry, {
-                            color: 'purple',
-                            weight: 3,
-                            fillColor: 'pink',
-                            fillOpacity: 0.4,
-                        }).addTo(map!);
-                        areaPolygon.bindPopup('New Area').openPopup();
+                        if (geometry?.coordinates[0]) {
+                            areaPolygon = L.polygon(geometry.coordinates[0], {
+                                color: 'purple',
+                                weight: 3,
+                                fillColor: 'pink',
+                                fillOpacity: 0.4,
+                            }).addTo(map!);
+                            areaPolygon.bindPopup('New Area').openPopup();
+                        }
                     },
                     (error) => {
                         console.error('Error getting current position:', error);
@@ -175,7 +104,19 @@ const AreaMap: React.FC = () => {
             // Add click event listener to the map
             map.on('click', (event: L.LeafletMouseEvent) => {
                 const { lat, lng } = event.latlng;
-                setGeometry((prevGeometry: any) => [...prevGeometry, [lat, lng]]);
+                setGeometry((prevGeometry: GeometryType | undefined) => {
+                    if (!prevGeometry) {
+                        return {
+                            type: 'Polygon',
+                            coordinates: [[[lat, lng]]],
+                        };
+                    }
+
+                    return {
+                        ...prevGeometry,
+                        coordinates: [[...prevGeometry.coordinates[0], [lat, lng]]],
+                    };
+                });
             });
         }
 
@@ -201,7 +142,7 @@ const AreaMap: React.FC = () => {
                 {isFormVisible ? 'Hide Geometry Form' : 'Show Geometry Form'}
             </Button>
             <div id="map" className="tw-fixed tw-h-screen tw-w-screen tw-z-0 tw-top-28 tw-left-0" />
-            <NewAreaForm geometry={geometry} />
+            {geometry && <NewAreaForm type={geometry?.type} coordinates={geometry?.coordinates} />}
             {isFormVisible && (
                 <div
                     id="form"
@@ -209,8 +150,8 @@ const AreaMap: React.FC = () => {
                 >
                     <Form {...formItemLayout}>
                         {geometry &&
-                            geometry.map((coordinatePair, index) => (
-                                <div key={index}>
+                            geometry.coordinates[0].map((coordinatePair, index) => (
+                                <div>
                                     <Form.Item label={`Latitude ${index + 1}`}>
                                         <Input
                                             value={coordinatePair[0]}

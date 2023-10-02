@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable jsx-a11y/alt-text */
 
-import FooterComponent from './components/footer';
+import FooterComponent from '../components/pages/components/footer';
 
 const LandingPage = () => {
     return (

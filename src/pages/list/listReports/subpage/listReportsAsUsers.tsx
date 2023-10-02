@@ -9,12 +9,14 @@ import {
 } from 'react';
 import { Button, Pagination, Select } from 'antd';
 
-import { getAllReportsAsAdmin, getAllVineyardsAsAgronomists } from '@/server/api/apis';
+import { getAllVineyardsByUserID, paginateReports } from '@/server/api/apis';
 
-import { ReportCard } from '../components/ReportCard';
+import { ReportType } from '@/type';
 
-const ListReportsAsAgronomist = () => {
-    const [reports, setReports] = useState([]);
+import { ReportCard } from '../../../../components/pages/components/ReportCard';
+
+const ListReports = () => {
+    const [reports, setReports] = useState<ReportType[]>();
     const [currentPage, setCurrentPage] = useState(1);
     const [itemCount, setItemCount] = useState(1);
     const [perPage, setPerPage] = useState(1);
@@ -31,7 +33,7 @@ const ListReportsAsAgronomist = () => {
         setVineyard('');
     };
     useEffect(() => {
-        getAllReportsAsAdmin('createdAt', vineyard, currentPage).then((res) => {
+        paginateReports('createdAt', vineyard, currentPage).then((res) => {
             setReports(res.items);
             setItemCount(res.meta.totalItems);
             setPerPage(res.meta.perPage);
@@ -39,7 +41,7 @@ const ListReportsAsAgronomist = () => {
     }, [currentPage, vineyard]);
 
     useEffect(() => {
-        getAllVineyardsAsAgronomists().then((res) => {
+        getAllVineyardsByUserID().then((res) => {
             setVineyards(res);
         });
     }, []);
@@ -48,17 +50,18 @@ const ListReportsAsAgronomist = () => {
             <div>
                 <div className="md:tw-grid md:tw-grid-flow-row md:tw-pt-32 tw-pt-44 tw-pb-32">
                     <div className="tw-overflow-y-auto tw-grid tw-grid-flow-row tw-gap-5 md:tw-overflow-x-auto md:tw-grid md:tw-grid-flow-col md:tw-p-10 md:tw-gap-4">
-                        {reports.map((item) => (
-                            <ReportCard
-                                id={item.id}
-                                key={item.id}
-                                title={item.title}
-                                description={item.description}
-                                disease={item.disease}
-                                area={item.area}
-                                vineyard={item.vineyard}
-                            />
-                        ))}
+                        {reports &&
+                            reports.map((item) => (
+                                <ReportCard
+                                    id={item.id}
+                                    key={item.id}
+                                    title={item.title}
+                                    description={item.description}
+                                    disease={item.disease}
+                                    area={item.area}
+                                    vineyard={item.vineyard}
+                                />
+                            ))}
                     </div>
                 </div>
                 <div
@@ -111,4 +114,4 @@ const ListReportsAsAgronomist = () => {
     );
 };
 
-export default ListReportsAsAgronomist;
+export default ListReports;

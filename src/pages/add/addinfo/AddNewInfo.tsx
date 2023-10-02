@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Button, Form } from 'antd';
 
-import AreaMap from '../map/CreateAreaMap';
-import VineyardMap from '../map/CreateVineyardMap';
+import AreaMap from '../../../components/map/CreateAreaMap/CreateAreaMap';
+import VineyardMap from '../../../components/map/CreateVineyardMap';
 
-import NotFoundPage from './components/404';
+import NotFoundPage from '../../../components/pages/components/404';
 
 const formItemLayout = {
     labelCol: {

@@ -14,6 +14,8 @@ import {
     updateVineyard,
 } from '@/server/api/apis';
 
+import { ReportType, VineyardType } from '@/type';
+
 import { ReportCard } from '../components/ReportCard';
 import ResultContainer from '../components/Result';
 
@@ -40,8 +42,8 @@ const ListVineyardsAsAgronomist: React.FC = () => {
     const [intervention, setIntervention] = useState<any>();
     const [edit, setEdit] = useState(false);
     const [report, setReport] = useState(false);
-    const [currentReport, setCurrentReport] = useState<any>();
-    const [currentVineyard, setCurrentVineyard] = useState<any>();
+    const [currentReport, setCurrentReport] = useState<ReportType>();
+    const [currentVineyard, setCurrentVineyard] = useState<VineyardType>();
     const [currentArea, setCurrentArea] = useState<any>();
     const [geometry, setGeometry] = useState<any>([]);
     const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -51,15 +53,17 @@ const ListVineyardsAsAgronomist: React.FC = () => {
     };
 
     const handleDelete = () => {
-        deleteVineyardByID(currentVineyard.id)
-            .then((res) => {
-                console.log('current vineyard', res);
-                setSubmitSuccess(true);
-            })
-            .catch((error) => {
-                // Handle any errors that occurred during the fetch
-                console.error('Error deleting:', error);
-            });
+        if (currentVineyard) {
+            deleteVineyardByID(currentVineyard.id)
+                .then((res) => {
+                    console.log('current vineyard', res);
+                    setSubmitSuccess(true);
+                })
+                .catch((error) => {
+                    // Handle any errors that occurred during the fetch
+                    console.error('Error deleting:', error);
+                });
+        }
     };
     const handleIntervention = (value: string) => {};
     const handleAreaOption = (value: string) => {
@@ -75,9 +79,10 @@ const ListVineyardsAsAgronomist: React.FC = () => {
             });
     };
     const handleReportChange = (value: string) => {
-        const { reports } = currentVineyard;
-        console.log('reports', reports);
-        setCurrentReport(reports.find((item: { id: string }) => item.id === value));
+        const reports = currentVineyard?.reports;
+        if (reports) {
+            setCurrentReport(reports.find((item: { id: string }) => item.id === value));
+        }
     };
     const handleVineyardOption = (value: string) => {
         getVineyardByID(value)
@@ -99,22 +104,24 @@ const ListVineyardsAsAgronomist: React.FC = () => {
         setReport(true);
     };
     const handleSubmit = async (values: any) => {
-        const { id } = currentVineyard;
+        const id = currentVineyard?.id;
         const { interventions } = values;
         try {
-            const response = await updateVineyard(
-                id,
-                currentVineyard.name,
-                currentVineyard.winetype,
-                currentVineyard.areanumber,
-                currentVineyard.yearofplanning,
-                currentArea.id,
-                currentVineyard.execution,
-                interventions,
-                currentVineyard.geometry,
-            );
-            console.log('Response:', response);
-            setSubmitSuccess(true);
+            if (id) {
+                const response = await updateVineyard(
+                    id,
+                    currentVineyard.name,
+                    currentVineyard.winetype,
+                    currentVineyard.areanumber,
+                    currentVineyard.yearofplanning,
+                    currentArea.id,
+                    currentVineyard.execution,
+                    interventions,
+                    currentVineyard.geometry,
+                );
+                console.log('Response:', response);
+                setSubmitSuccess(true);
+            }
         } catch (error) {
             console.error('Failed to submit area:', error);
         }
@@ -322,40 +329,25 @@ const ListVineyardsAsAgronomist: React.FC = () => {
                                             onChange={(value) => handleReportChange(value)}
                                             defaultActiveFirstOption
                                         >
-                                            {currentVineyard.reports.map(
-                                                (item: {
-                                                    id: React.Key | null | undefined;
-                                                    name:
-                                                        | string
-                                                        | number
-                                                        | boolean
-                                                        | React.ReactElement<
-                                                              any,
-                                                              | string
-                                                              | React.JSXElementConstructor<any>
-                                                          >
-                                                        | React.ReactFragment
-                                                        | React.ReactPortal
-                                                        | null
-                                                        | undefined;
-                                                }) => (
-                                                    <Select.Option key={item.id} value={item.id}>
-                                                        {item.title}
-                                                    </Select.Option>
-                                                ),
-                                            )}
+                                            {currentVineyard.reports.map((item) => (
+                                                <Select.Option key={item.id} value={item.id}>
+                                                    {item.title}
+                                                </Select.Option>
+                                            ))}
                                         </Select>
                                     )}
                                 </Form.Item>
                                 <div className="tw-fixed tw-right-2 tw-top-32 tw-w-fit">
-                                    <ReportCard
-                                        id={currentReport.id}
-                                        title={currentReport.title}
-                                        description={currentReport.description}
-                                        disease={currentReport.disease}
-                                        area={currentArea.name}
-                                        vineyard={currentVineyard.name}
-                                    />
+                                    {currentReport && currentVineyard && (
+                                        <ReportCard
+                                            id={currentReport.id}
+                                            title={currentReport.title}
+                                            description={currentReport.description}
+                                            disease={currentReport.disease}
+                                            area={currentArea.name}
+                                            vineyard={currentVineyard}
+                                        />
+                                    )}
                                 </div>
                             </>
                         )}

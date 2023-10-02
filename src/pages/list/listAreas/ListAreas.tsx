@@ -3,9 +3,9 @@ import { Form, Select } from 'antd';
 
 import { getAreas } from '@/server/api/apis';
 
-import AreaMap from '../map/DisplayAreaMap';
+import AreaMap from '../../../components/map/DisplayAreaMap';
 
-import NotFoundPage from './components/404';
+import NotFoundPage from '../../../components/pages/components/404';
 
 const ListAreas = () => {
     const role = localStorage.getItem('role');

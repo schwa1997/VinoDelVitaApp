@@ -1,3 +1,5 @@
+import { GeometryType } from '@/type';
+
 import { commonRequest } from './axios';
 // report api
 export async function getAllReportsAsAdmin(orderBy: string, vineyard: string, page: number) {
@@ -166,7 +168,7 @@ export async function getAreaByID(id: string) {
     }
 }
 
-export async function updateArea(id: string, name: string, code: string, geometry: Coordinates) {
+export async function updateArea(id: string, name: string, code: string, geometry: GeometryType) {
     console.log(id, name, code, geometry);
     const jwtToken = localStorage.getItem('jwtToken'); // Get the JWT token from the local storage.
     const headers = {
@@ -221,14 +223,8 @@ export async function confirmPSW(password: string) {
         throw error;
     }
 }
-interface Coordinates {
-    type: string;
-    coordinates: number[][][];
-}
 
-// Define an interface for the data format
-
-export async function createArea(name: string, code: string, geometry: Coordinates) {
+export async function createArea(name: string, code: string, geometry: GeometryType) {
     const jwtToken = localStorage.getItem('jwtToken');
     const headers = {
         'Content-Type': 'application/json',
@@ -355,7 +351,7 @@ export async function postVineyard(
     areanumber: string,
     yearofplanning: string,
     area: string,
-    geometry: Coordinates,
+    geometry: GeometryType,
 ) {
     console.log('api', name, winetype, areanumber, yearofplanning, area, geometry);
     const jwtToken = localStorage.getItem('jwtToken'); // Get the JWT token from the local storage.
@@ -391,7 +387,7 @@ export async function updateVineyard(
     area: string,
     execution: string,
     interventions: Array<string>,
-    geometry: Coordinates,
+    geometry: GeometryType,
 ) {
     const jwtToken = localStorage.getItem('jwtToken'); // Get the JWT token from the local storage.
     const headers = {

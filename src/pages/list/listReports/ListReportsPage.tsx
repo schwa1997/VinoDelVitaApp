@@ -1,6 +1,6 @@
-import ListReports from '../map/listReports';
+import ListReports from './subpage/listReportsAsUsers';
 
-import ListReportsAsAgronomist from './Agronomists/listReportsAsAgronomist';
+import ListReportsAsAgronomist from './subpage/listReportsAsAgronomist';
 
 const ListReportByRoles = () => {
     const role = localStorage.getItem('role');

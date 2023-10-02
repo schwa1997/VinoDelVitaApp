@@ -1,6 +1,6 @@
-import ListVineyards from '../map/ListVineyard';
+import ListVineyards from '../../components/map/ListVineyard';
 
-import ListVineyardsAsAgronomist from './Agronomists/AgoDisplayVineyards';
+import ListVineyardsAsAgronomist from '../../components/pages/Agronomists/AgoDisplayVineyards';
 
 const ListVineyardByRoles = () => {
     const role = localStorage.getItem('role');
