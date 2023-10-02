@@ -8,8 +8,13 @@ export type ReportType = {
     title: string;
     description: string;
     disease: string;
-    area: Array<any>;
-    vineyard: Array<any>;
+    area: AreaType;
+    vineyard: VineyardType;
+    status: number;
+    updatedAt: string;
+    createdAt: string;
+    company: CompanyType;
+    deletedAt: string;
 };
 export type VineyardType = {
     id: string;
@@ -19,7 +24,7 @@ export type VineyardType = {
     yearofplanning: string;
     area: string;
     execution: string;
-    interventions: Array<string>;
+    interventions: InterventionType[];
     geometry: GeometryType;
     reports: ReportType[];
 };
@@ -29,4 +34,20 @@ export type AreaType = {
     name: string;
     code: string;
     geometry: GeometryType;
+};
+
+export type CompanyType = {
+    id: string;
+    companyName: string;
+    password: string;
+    email: string;
+    phone: string;
+};
+
+export type InterventionType = {
+    id: string;
+    name: string;
+    code: string;
+    type: string;
+    description: string;
 };

@@ -3,29 +3,37 @@ import L from 'leaflet';
 import React, { useEffect, useState } from 'react';
 
 import { getAllVineyardsByUserID } from '@/server/api/apis';
+import { VineyardType } from '@/type';
 
 const DisplayVineyards: React.FC = () => {
-    const [vineyards, setVineyards] = useState<any>();
-    const [allvineyards, setAllVineyards] = useState<any>();
-    const [selectedVineyard, setSelectedVineyard] = useState(null);
+    const [vineyards, setVineyards] = useState<VineyardType[]>();
+    const [allvineyards, setAllVineyards] = useState<VineyardType[]>();
+    const [selectedVineyard, setSelectedVineyard] = useState<VineyardType>();
     const [vineyardPolygons, setVineyardPolygons] = useState<L.Polygon[]>([]);
-    const [disease, setDisease] = useState<any>();
-    const [status, setStatus] = useState<any>();
+    const [disease, setDisease] = useState<string>();
+    const [status, setStatus] = useState<number>();
     const handleDiseaseChange = (value: string) => {
         setDisease(value);
-        const filteredVineyards = allvineyards.filter((vineyard: { reports: any[] }) =>
+        const filteredVineyards = allvineyards?.filter((vineyard: { reports: any[] }) =>
             vineyard.reports.some((report) => report.disease === value),
         );
-        setVineyards(filteredVineyards);
+        if (filteredVineyards) {
+            setVineyards(filteredVineyards as VineyardType[]);
+        }
     };
+
     const handleStatusChange = (value: any) => {
         console.log(value);
         setStatus(value);
-        const filteredVineyards = allvineyards.filter((vineyard: { reports: any[] }) =>
-            vineyard.reports.some((report) => report.status === value),
-        );
-        console.log(filteredVineyards);
-        setVineyards(filteredVineyards);
+        if (allvineyards) {
+            const filteredVineyards = allvineyards.filter((vineyard: { reports: any[] }) =>
+                vineyard.reports.some((report) => report.status === value),
+            );
+            console.log(filteredVineyards);
+            if (filteredVineyards) {
+                setVineyards(() => filteredVineyards);
+            }
+        }
     };
     useEffect(() => {
         getAllVineyardsByUserID().then((res) => {
@@ -34,44 +42,46 @@ const DisplayVineyards: React.FC = () => {
     }, []);
 
     const handleVineyardChange = (value: string) => {
-        setSelectedVineyard(allvineyards.find((item: { id: string }) => item.id === value));
+        setSelectedVineyard(allvineyards?.find((item: { id: string }) => item.id === value));
     };
 
     useEffect(() => {
         let map: L.Map | null = null;
-        if (vineyards.length > 0) {
-            if (!map) {
-                const coordinates =
-                    selectedVineyard?.geometry.coordinates[0][0] ||
-                    vineyards[0].geometry.coordinates[0][0];
-                map = L.map('map').setView([coordinates[0], coordinates[1]], 19);
-                console.log(coordinates[1], coordinates[0]);
+        if (vineyards) {
+            if (vineyards.length > 0) {
+                if (!map) {
+                    const coordinates =
+                        selectedVineyard?.geometry.coordinates[0][0] ||
+                        vineyards[0].geometry.coordinates[0][0];
+                    map = L.map('map').setView([coordinates[0], coordinates[1]], 19);
+                    console.log(coordinates[1], coordinates[0]);
 
-                const polygons: L.Polygon[] = vineyards.map(
-                    (vineyard: {
-                        geometry: {
-                            coordinates: (
-                                | L.LatLngExpression[]
-                                | L.LatLngExpression[][]
-                                | L.LatLngExpression[][][]
-                            )[];
-                        };
-                    }) =>
-                        L.polygon(vineyard.geometry.coordinates[0], {
-                            color: 'purple',
-                            weight: 3,
-                            fillColor: 'pink',
-                            fillOpacity: 0.4,
-                        }).addTo(map!),
-                );
+                    const polygons: L.Polygon[] = vineyards.map(
+                        (vineyard: {
+                            geometry: {
+                                coordinates: (
+                                    | L.LatLngExpression[]
+                                    | L.LatLngExpression[][]
+                                    | L.LatLngExpression[][][]
+                                )[];
+                            };
+                        }) =>
+                            L.polygon(vineyard.geometry.coordinates[0], {
+                                color: 'purple',
+                                weight: 3,
+                                fillColor: 'pink',
+                                fillOpacity: 0.4,
+                            }).addTo(map!),
+                    );
 
-                setVineyardPolygons(polygons);
+                    setVineyardPolygons(polygons);
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution:
-                        'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
-                    maxZoom: 16,
-                }).addTo(map);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution:
+                            'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+                        maxZoom: 16,
+                    }).addTo(map);
+                }
             }
         }
         return () => {
@@ -150,7 +160,7 @@ const DisplayVineyards: React.FC = () => {
                                                   </Select.Option>
                                               ),
                                           )
-                                        : allvineyards.map(
+                                        : allvineyards?.map(
                                               (item: {
                                                   id: React.Key | null | undefined;
                                                   name:
@@ -186,7 +196,7 @@ const DisplayVineyards: React.FC = () => {
                                     <p>
                                         <strong>UpdatedAt:</strong>{' '}
                                         {selectedVineyard.reports
-                                            .map((item: { updatedAt: any }) => item.updatedAt)
+                                            .map((item) => item.updatedAt)
                                             .join(', ')}
                                     </p>
                                 </div>
@@ -247,7 +257,7 @@ const DisplayVineyards: React.FC = () => {
                                                   </Select.Option>
                                               ),
                                           )
-                                        : allvineyards.map(
+                                        : allvineyards?.map(
                                               (item: {
                                                   id: React.Key | null | undefined;
                                                   name:
@@ -277,14 +287,14 @@ const DisplayVineyards: React.FC = () => {
                                     <p>
                                         <strong>Intervention:</strong>{' '}
                                         {selectedVineyard.interventions
-                                            .map((item: { type: any }) => item.type)
+                                            .map((item) => item.type)
                                             .join(', ')}
                                     </p>
                                     {status && (
                                         <p>
                                             <strong>Status:</strong>{' '}
                                             {selectedVineyard.reports
-                                                .map((item: { status: any }) => item.status)
+                                                .map((item) => item.status)
                                                 .join(', ')}
                                         </p>
                                     )}

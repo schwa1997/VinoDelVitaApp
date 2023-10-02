@@ -7,6 +7,8 @@ import 'leaflet/dist/leaflet.css';
 
 import { getAreaByID, getAreas, getVineyardByID, postReport } from '@/server/api/apis';
 
+import { AreaType, GeometryType, VineyardType } from '@/type';
+
 import ResultContainer from '../pages/components/Result';
 
 const formItemLayout = {
@@ -28,17 +30,18 @@ const formItemLayout = {
     },
 };
 const ReportMap: React.FC = () => {
-    const [areas, setAreas] = useState();
+    const [areas, setAreas] = useState<AreaType[]>();
     const [edit, setEdit] = useState(false);
     const [Go2Current, setGo2Current] = useState(false);
-    const [currentVineyard, setCurrentVineyard] = useState();
-    const [currentArea, setCurrentArea] = useState();
-    const [geometry, setGeometry] = useState<number[][]>([]);
+    const [currentVineyard, setCurrentVineyard] = useState<VineyardType>();
+    const [currentArea, setCurrentArea] = useState<AreaType>();
+    const [geometry, setGeometry] = useState<GeometryType>();
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [isFormVisible, setIsFormVisible] = useState(true);
     const toggleFormVisibility = () => {
         setIsFormVisible((prevValue) => !prevValue);
     };
+    const { Option } = Select;
     const toggleGo2Current = () => {
         setGo2Current((prevValue) => !prevValue);
     };
@@ -59,6 +62,7 @@ const ReportMap: React.FC = () => {
             .then((vineyard) => {
                 setCurrentVineyard(vineyard);
                 setGeometry(vineyard.geometry);
+                console.log(currentVineyard);
             })
             .catch((error) => {
                 // Handle any errors that occurred during the fetch
@@ -103,7 +107,7 @@ const ReportMap: React.FC = () => {
             });
         }
 
-        if (!Go2Current && !map && geometry.coordinates && geometry.coordinates.length > 0) {
+        if (!Go2Current && !map && geometry?.coordinates[0] && geometry.coordinates.length > 0) {
             console.log(
                 'geometry',
                 geometry,

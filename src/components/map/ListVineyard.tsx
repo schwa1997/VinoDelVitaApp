@@ -3,21 +3,22 @@ import L from 'leaflet';
 import React, { useEffect, useState } from 'react';
 
 import { getAllVineyardsByUserID } from '@/server/api/apis';
+import { VineyardType } from '@/type';
 
 const ListVineyards: React.FC = () => {
-    const [vineyards, setVineyards] = useState([]);
-    const [allvineyards, setAllVineyards] = useState([]);
-    const [selectedVineyard, setSelectedVineyard] = useState(null);
+    const [vineyards, setVineyards] = useState<VineyardType[]>();
+    const [allvineyards, setAllVineyards] = useState<VineyardType[]>();
+    const [selectedVineyard, setSelectedVineyard] = useState<VineyardType>();
     const [vineyardPolygons, setVineyardPolygons] = useState<L.Polygon[]>([]);
-    const [disease, setDisease] = useState('');
-    const [status, setStatus] = useState('');
-    const [selection, setSelection] = useState(0);
-    const handleSelectionChange = (value: string) => {
+    const [disease, setDisease] = useState<string>();
+    const [status, setStatus] = useState<number>();
+    const [selection, setSelection] = useState<number>();
+    const handleSelectionChange = (value: number) => {
         setSelection(value);
     };
     const handleDiseaseChange = (value: string) => {
         setDisease(value);
-        const filteredVineyards = allvineyards.filter((vineyard) =>
+        const filteredVineyards = allvineyards?.filter((vineyard) =>
             vineyard.reports.some((report) => report.disease === value),
         );
         setVineyards(filteredVineyards);
@@ -25,7 +26,7 @@ const ListVineyards: React.FC = () => {
     const handleStatusChange = (value: any) => {
         console.log(value);
         setStatus(value);
-        const filteredVineyards = allvineyards.filter((vineyard) =>
+        const filteredVineyards = allvineyards?.filter((vineyard) =>
             vineyard.reports.some((report) => report.status === value),
         );
         console.log(filteredVineyards);
@@ -38,36 +39,37 @@ const ListVineyards: React.FC = () => {
     }, []);
 
     const handleVineyardChange = (value: string) => {
-        const selectedVineyard = allvineyards.find((item) => item.id === value);
-        setSelectedVineyard(selectedVineyard);
+        setSelectedVineyard(allvineyards?.find((item) => item.id === value));
         setVineyards(allvineyards);
     };
 
     useEffect(() => {
         let map: L.Map | null = null;
-        if (vineyards.length > 0) {
-            if (!map) {
-                const coordinates =
-                    selectedVineyard?.geometry.coordinates[0][0] ||
-                    vineyards[0].geometry.coordinates[0][0];
-                map = L.map('map').setView([coordinates[0], coordinates[1]], 19);
+        if (vineyards) {
+            if (vineyards.length > 0) {
+                if (!map) {
+                    const coordinates =
+                        selectedVineyard?.geometry.coordinates[0][0] ||
+                        vineyards[0].geometry.coordinates[0][0];
+                    map = L.map('map').setView([coordinates[0], coordinates[1]], 19);
 
-                const polygons: L.Polygon[] = vineyards.map((vineyard) =>
-                    L.polygon(vineyard.geometry.coordinates[0], {
-                        color: 'purple',
-                        weight: 3,
-                        fillColor: 'pink',
-                        fillOpacity: 0.4,
-                    }).addTo(map!),
-                );
+                    const polygons: L.Polygon[] = vineyards.map((vineyard) =>
+                        L.polygon(vineyard.geometry.coordinates[0], {
+                            color: 'purple',
+                            weight: 3,
+                            fillColor: 'pink',
+                            fillOpacity: 0.4,
+                        }).addTo(map!),
+                    );
 
-                setVineyardPolygons(polygons);
+                    setVineyardPolygons(polygons);
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution:
-                        'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
-                    maxZoom: 16,
-                }).addTo(map);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution:
+                            'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+                        maxZoom: 16,
+                    }).addTo(map);
+                }
             }
         }
         return () => {
@@ -207,7 +209,7 @@ const ListVineyards: React.FC = () => {
                                                       {item.name}
                                                   </Select.Option>
                                               ))
-                                            : allvineyards.map((item) => (
+                                            : allvineyards?.map((item) => (
                                                   <Select.Option key={item.id} value={item.id}>
                                                       {item.name}
                                                   </Select.Option>
@@ -279,7 +281,7 @@ const ListVineyards: React.FC = () => {
                                                       {item.name}
                                                   </Select.Option>
                                               ))
-                                            : allvineyards.map((item) => (
+                                            : allvineyards?.map((item) => (
                                                   <Select.Option key={item.id} value={item.id}>
                                                       {item.name}
                                                   </Select.Option>

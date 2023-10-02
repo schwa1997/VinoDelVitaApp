@@ -5,6 +5,8 @@ import { Button, Form, Input, Select } from 'antd';
 
 import { deleteAreaByID, getAreaByID, getAreas, updateArea } from '@/server/api/apis';
 
+import { AreaType, GeometryType } from '@/type';
+
 import ResultContainer from '../pages/components/Result';
 
 const formItemLayout = {
@@ -26,32 +28,51 @@ const formItemLayout = {
     },
 };
 const EditAreaMap: React.FC = () => {
-    const [areas, setAreas] = useState<any>();
+    const [areas, setAreas] = useState<AreaType[]>();
     const [edit, setEdit] = useState(false);
-    const [currentArea, setCurrentArea] = useState<any>();
-    const [geometry, setGeometry] = useState<any>();
+    const [currentArea, setCurrentArea] = useState<AreaType>();
+    const [geometry, setGeometry] = useState<GeometryType>();
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [isFormVisible, setIsFormVisible] = useState(true);
     const toggleFormVisibility = () => {
         setIsFormVisible((prevValue) => !prevValue);
     };
     const handleCoordinateChange = (index: number, subIndex: number, value: number) => {
-        console.log('handleCoordinateChange');
-        const updatedCoordinates = [...geometry.coordinates];
-        updatedCoordinates[0][index][subIndex] = value;
-        setGeometry({ ...geometry, coordinates: updatedCoordinates });
-        console.log(geometry);
+        if (geometry) {
+            // Deep copy the geometry object to avoid mutating the original state
+            const updatedGeometry = JSON.parse(JSON.stringify(geometry));
+            // Check if the coordinates array is defined and has the expected structure
+            if (
+                Array.isArray(updatedGeometry.coordinates) &&
+                Array.isArray(updatedGeometry.coordinates[0]) &&
+                updatedGeometry.coordinates[0][index] !== undefined &&
+                updatedGeometry.coordinates[0][index][subIndex] !== undefined
+            ) {
+                if (subIndex === 0) {
+                    updatedGeometry.coordinates[0][index][0] = value;
+                } else if (subIndex === 1) {
+                    updatedGeometry.coordinates[0][index][1] = value;
+                }
+
+                // Update the state with the modified geometry object
+                setGeometry(updatedGeometry);
+            } else {
+                console.error('Invalid coordinates structure:', updatedGeometry.coordinates);
+            }
+        }
     };
     const handleDelete = () => {
-        deleteAreaByID(currentArea.id)
-            .then((res) => {
-                console.log(' currentArea', res);
-                setSubmitSuccess(true);
-            })
-            .catch((error) => {
-                // Handle any errors that occurred during the fetch
-                console.error('Error deleting:', error);
-            });
+        if (currentArea) {
+            deleteAreaByID(currentArea.id)
+                .then((res) => {
+                    console.log(' currentArea', res);
+                    setSubmitSuccess(true);
+                })
+                .catch((error) => {
+                    // Handle any errors that occurred during the fetch
+                    console.error('Error deleting:', error);
+                });
+        }
     };
     const handleAreaOption = (value: string) => {
         getAreaByID(value)
@@ -69,17 +90,13 @@ const EditAreaMap: React.FC = () => {
         setEdit(true);
     };
     const handleSubmit = async (values: any) => {
-        const { id } = currentArea;
         const { name, code } = values;
-        const geoJsonPolygon = {
-            type: 'Polygon',
-            coordinates: geometry.coordinates,
-        };
-        console.log('geometry', geoJsonPolygon);
         try {
-            const response = await updateArea(id, name, code, geoJsonPolygon);
-            console.log('Response:', response);
-            setSubmitSuccess(true);
+            if (currentArea && geometry) {
+                const response = await updateArea(currentArea?.id, name, code, geometry);
+                console.log('Response:', response);
+                setSubmitSuccess(true);
+            }
         } catch (error) {
             console.error('Failed to submit area:', error);
         }
@@ -215,7 +232,7 @@ const EditAreaMap: React.FC = () => {
                                     key="name"
                                     name="name"
                                     label="Area name"
-                                    initialValue={currentArea.name}
+                                    initialValue={currentArea?.name}
                                     rules={[
                                         {
                                             required: true,
@@ -233,7 +250,7 @@ const EditAreaMap: React.FC = () => {
                                     key="code"
                                     name="code"
                                     label="Area code"
-                                    initialValue={currentArea.code}
+                                    initialValue={currentArea?.code}
                                     rules={[
                                         {
                                             required: true,
@@ -247,7 +264,7 @@ const EditAreaMap: React.FC = () => {
                                 >
                                     <Input placeholder="code" />
                                 </Form.Item>
-                                {geometry.coordinates[0].map(
+                                {geometry?.coordinates[0].map(
                                     (
                                         coordinatePair: (
                                             | string

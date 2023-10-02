@@ -12,6 +12,8 @@ import {
     updateVineyard,
 } from '@/server/api/apis';
 
+import { AreaType, GeometryType, VineyardType } from '@/type';
+
 import GeneralInfo from '../pages/components/GeneralInfo';
 import ResultContainer from '../pages/components/Result';
 
@@ -35,33 +37,54 @@ const formItemLayout = {
 };
 const EditVineyardMap: React.FC = () => {
     const [err, setErr] = useState(false);
-    const [areas, setAreas] = useState<any>();
+    const [areas, setAreas] = useState<AreaType[]>();
     const [edit, setEdit] = useState(false);
-    const [currentVineyard, setCurrentVineyard] = useState<any>();
-    const [currentArea, setCurrentArea] = useState<any>();
-    const [geometry, setGeometry] = useState<any>([]);
+    const [currentVineyard, setCurrentVineyard] = useState<VineyardType>();
+    const [currentArea, setCurrentArea] = useState<AreaType>();
+    const [geometry, setGeometry] = useState<GeometryType>();
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [isFormVisible, setIsFormVisible] = useState(true);
     const toggleFormVisibility = () => {
         setIsFormVisible((prevValue) => !prevValue);
     };
     const handleCoordinateChange = (index: number, subIndex: number, value: number) => {
-        const updatedCoordinates = [...geometry.coordinates];
-        updatedCoordinates[0][index][subIndex] = value;
-        setGeometry({ ...geometry, coordinates: updatedCoordinates });
+        if (geometry) {
+            // Deep copy the geometry object to avoid mutating the original state
+            const updatedGeometry = JSON.parse(JSON.stringify(geometry));
+            // Check if the coordinates array is defined and has the expected structure
+            if (
+                Array.isArray(updatedGeometry.coordinates) &&
+                Array.isArray(updatedGeometry.coordinates[0]) &&
+                updatedGeometry.coordinates[0][index] !== undefined &&
+                updatedGeometry.coordinates[0][index][subIndex] !== undefined
+            ) {
+                if (subIndex === 0) {
+                    updatedGeometry.coordinates[0][index][0] = value;
+                } else if (subIndex === 1) {
+                    updatedGeometry.coordinates[0][index][1] = value;
+                }
+
+                // Update the state with the modified geometry object
+                setGeometry(updatedGeometry);
+            } else {
+                console.error('Invalid coordinates structure:', updatedGeometry.coordinates);
+            }
+        }
     };
     const handleDelete = () => {
         console.log(err);
         setErr(false);
-        deleteVineyardByID(currentVineyard.id)
-            .then(() => {
-                setSubmitSuccess(true);
-                setErr(false);
-            })
-            .catch((error) => {
-                setErr(true);
-                console.error('Error deleting:', error);
-            });
+        if (currentVineyard) {
+            deleteVineyardByID(currentVineyard.id)
+                .then(() => {
+                    setSubmitSuccess(true);
+                    setErr(false);
+                })
+                .catch((error) => {
+                    setErr(true);
+                    console.error('Error deleting:', error);
+                });
+        }
     };
     const handleAreaOption = (value: string) => {
         getAreaByID(value)
@@ -90,21 +113,23 @@ const EditVineyardMap: React.FC = () => {
     };
     const handleSubmit = async (values: any) => {
         const { name, winetype, areanumber, area, execution, yearofplanning } = values;
-        const interventions = currentVineyard.interventions.map((item) => item.id);
+        const interventions = currentVineyard?.interventions.map((item) => item.id);
         try {
-            const response = await updateVineyard(
-                currentVineyard.id,
-                name,
-                winetype,
-                areanumber,
-                yearofplanning,
-                area,
-                execution,
-                interventions,
-                geometry,
-            );
-            console.log('Response:', response);
-            setSubmitSuccess(true);
+            if (currentVineyard && interventions && geometry) {
+                const response = await updateVineyard(
+                    currentVineyard.id,
+                    name,
+                    winetype,
+                    areanumber,
+                    yearofplanning,
+                    area,
+                    execution,
+                    interventions,
+                    geometry,
+                );
+                console.log('Response:', response);
+                setSubmitSuccess(true);
+            }
         } catch (error) {
             console.error('Failed to submit area:', error);
         }
@@ -124,27 +149,27 @@ const EditVineyardMap: React.FC = () => {
                 [geometry.coordinates[0][0][0], geometry.coordinates[0][0][1]],
                 19,
             );
-
-            areaPolygon = L.polygon(currentArea.geometry.coordinates[0], {
-                color: 'purple',
-                weight: 3,
-                fillColor: 'pink',
-                fillOpacity: 0.4,
-            }).addTo(map!);
-            if (currentVineyard) {
-                vineyardPolygon = L.polygon(currentVineyard.geometry.coordinates[0], {
+            if (currentArea) {
+                areaPolygon = L.polygon(currentArea.geometry.coordinates[0], {
                     color: 'purple',
                     weight: 3,
-                    fillColor: 'red',
+                    fillColor: 'pink',
                     fillOpacity: 0.4,
                 }).addTo(map!);
+                if (currentVineyard) {
+                    vineyardPolygon = L.polygon(currentVineyard.geometry.coordinates[0], {
+                        color: 'purple',
+                        weight: 3,
+                        fillColor: 'red',
+                        fillOpacity: 0.4,
+                    }).addTo(map!);
+                }
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution:
+                        'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+                    maxZoom: 19,
+                }).addTo(map);
             }
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution:
-                    'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
-                maxZoom: 19,
-            }).addTo(map);
-
             // Add click event listener to the map
         }
 
@@ -273,7 +298,7 @@ const EditVineyardMap: React.FC = () => {
                                     key="name"
                                     name="name"
                                     label="Name"
-                                    initialValue={currentVineyard.name}
+                                    initialValue={currentVineyard?.name}
                                     rules={[
                                         {
                                             required: true,
@@ -291,7 +316,7 @@ const EditVineyardMap: React.FC = () => {
                                     key="execution"
                                     name="execution"
                                     label="Execution"
-                                    initialValue={currentVineyard.execution}
+                                    initialValue={currentVineyard?.execution}
                                     rules={[
                                         {
                                             required: true,
@@ -309,7 +334,7 @@ const EditVineyardMap: React.FC = () => {
                                     key="winetype"
                                     name="winetype"
                                     label="Wine Type"
-                                    initialValue={currentVineyard.winetype}
+                                    initialValue={currentVineyard?.winetype}
                                     rules={[
                                         {
                                             required: true,
@@ -334,7 +359,7 @@ const EditVineyardMap: React.FC = () => {
                                     key="areanumber"
                                     name="areanumber"
                                     label="Area Order"
-                                    initialValue={currentVineyard.areanumber}
+                                    initialValue={currentVineyard?.areanumber}
                                     rules={[
                                         {
                                             required: true,
@@ -353,7 +378,7 @@ const EditVineyardMap: React.FC = () => {
                                     key="area"
                                     name="area"
                                     label="Select Area"
-                                    initialValue={currentVineyard.area}
+                                    initialValue={currentVineyard?.area}
                                     rules={[
                                         {
                                             required: true,
@@ -380,7 +405,7 @@ const EditVineyardMap: React.FC = () => {
                                     key="yearofplanning"
                                     name="yearofplanning"
                                     label="Year Of Planning"
-                                    initialValue={currentVineyard.yearofplanning}
+                                    initialValue={currentVineyard?.yearofplanning}
                                     rules={[
                                         {
                                             required: true,
@@ -395,8 +420,8 @@ const EditVineyardMap: React.FC = () => {
                                     <Input placeholder="Vineyard Year Of Planning" />
                                 </Form.Item>
 
-                                {geometry.coordinates[0].map((coordinatePair, index) => (
-                                    <div key={index}>
+                                {geometry?.coordinates[0].map((coordinatePair, index) => (
+                                    <div>
                                         <Form.Item label={`Latitude ${index + 1}`}>
                                             <Input
                                                 value={coordinatePair[0]}
