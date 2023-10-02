@@ -3,19 +3,20 @@ import { Form, Select } from 'antd';
 
 import { getAreas } from '@/server/api/apis';
 
+import { AreaType } from '@/type';
+
 import AreaMap from '../../../components/map/DisplayAreaMap';
 
 import NotFoundPage from '../../../components/pages/components/404';
 
 const ListAreas = () => {
     const role = localStorage.getItem('role');
-    const [area, setArea] = useState(null); // Initialize 'area' with null
-    const [areas, setAreas] = useState([]);
+    const [area, setArea] = useState<AreaType>(); // Initialize 'area' with null
+    const [areas, setAreas] = useState<AreaType[]>();
     const [loading, setLoading] = useState(true); // Add loading state
-    const [error, setError] = useState(null); // Add error state
 
     const handleAreaChange = (value: string) => {
-        const selectedArea = areas.find((item) => item.id === value);
+        const selectedArea = areas?.find((item) => item.id === value);
         setArea(selectedArea);
         console.log(selectedArea);
     };
@@ -25,9 +26,6 @@ const ListAreas = () => {
             .then((res) => {
                 setAreas(res);
             })
-            .catch((error) => {
-                setError(error.message);
-            })
             .finally(() => {
                 setLoading(false);
             });
@@ -36,11 +34,6 @@ const ListAreas = () => {
     if (loading) {
         // Add loading state handling, you can show a spinner or loading message
         return <div>Loading...</div>;
-    }
-
-    if (error) {
-        // Add error state handling, display an error message or a fallback component
-        return <div>Error: {error}</div>;
     }
 
     return (
@@ -65,7 +58,7 @@ const ListAreas = () => {
                                         ]}
                                     >
                                         <Select onChange={handleAreaChange}>
-                                            {areas.map((item) => (
+                                            {areas?.map((item) => (
                                                 <Select.Option key={item.id} value={item.id}>
                                                     {item.code}
                                                 </Select.Option>
